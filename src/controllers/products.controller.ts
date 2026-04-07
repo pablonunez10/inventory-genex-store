@@ -51,7 +51,7 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
 
 export const getProductById = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const product = await prisma.product.findUnique({
       where: { id },
@@ -136,7 +136,7 @@ export const createProduct = async (req: AuthRequest, res: Response): Promise<vo
 
 export const updateProduct = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const data: UpdateProductInput = req.body;
 
     const existingProduct = await prisma.product.findUnique({
@@ -191,7 +191,7 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
 
 export const deleteProduct = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const product = await prisma.product.findUnique({
       where: { id },
@@ -217,7 +217,7 @@ export const deleteProduct = async (req: AuthRequest, res: Response): Promise<vo
 
 export const adjustStock = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { quantity, notes } = req.body;
 
     if (quantity === undefined || typeof quantity !== 'number') {

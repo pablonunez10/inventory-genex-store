@@ -39,7 +39,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         role: user.role,
       },
       JWT_CONFIG.secret,
-      { expiresIn: JWT_CONFIG.expiresIn }
+      { expiresIn: '24h' }
     );
 
     res.json({

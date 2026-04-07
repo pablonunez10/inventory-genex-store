@@ -163,7 +163,7 @@ export const getPurchases = async (req: AuthRequest, res: Response): Promise<voi
 
 export const getPurchaseById = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const purchase = await prisma.purchaseOrder.findUnique({
       where: { id },

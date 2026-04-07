@@ -189,7 +189,7 @@ export const getMySales = async (req: AuthRequest, res: Response): Promise<void>
 
 export const getSaleById = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const sale = await prisma.sale.findUnique({
       where: { id },
