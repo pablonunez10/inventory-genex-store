@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  VENDEDOR
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(VENDEDOR)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sales     Sale[]
+  purchases PurchaseOrder[]
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products Product[]
+}
+
+model Product {
+  id           String   @id @default(uuid())
+  name         String
+  sku          String   @unique
+  description  String?
+  currentStock Int      @default(0)
+  minStock     Int      @default(5)
+  purchasePrice Decimal @db.Decimal(12, 0)
+  salePrice    Decimal  @db.Decimal(12, 0)
+  isActive     Boolean  @default(true)
+  categoryId   String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  category           Category             @relation(fields: [categoryId], references: [id])
+  saleItems          SaleItem[]
+  purchaseItems      PurchaseOrderItem[]
+  inventoryMovements InventoryMovement[]
+}
+
+model PurchaseOrder {
+  id            String   @id @default(uuid())
+  supplier      String?
+  invoiceNumber String?
+  totalAmount   Decimal  @db.Decimal(12, 0)
+  purchaseDate  DateTime @default(now())
+  createdById   String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  createdBy User                @relation(fields: [createdById], references: [id])
+  items     PurchaseOrderItem[]
+}
+
+model PurchaseOrderItem {
+  id              String   @id @default(uuid())
+  purchaseOrderId String
+  productId       String
+  quantity        Int
+  unitCost        Decimal  @db.Decimal(12, 0)
+  subtotal        Decimal  @db.Decimal(12, 0)
+  createdAt       DateTime @default(now())
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  product       Product       @relation(fields: [productId], references: [id])
+}
+
+model Sale {
+  id           String   @id @default(uuid())
+  customerName String
+  customerRuc  String?
+  wantsInvoice Boolean  @default(false)
+  totalAmount  Decimal  @db.Decimal(12, 0)
+  saleDate     DateTime @default(now())
+  createdById  String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  createdBy User       @relation(fields: [createdById], references: [id])
+  items     SaleItem[]
+}
+
+model SaleItem {
+  id        String   @id @default(uuid())
+  saleId    String
+  productId String
+  quantity  Int
+  unitPrice Decimal  @db.Decimal(12, 0)
+  subtotal  Decimal  @db.Decimal(12, 0)
+  createdAt DateTime @default(now())
+
+  sale    Sale    @relation(fields: [saleId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
+
+enum MovementType {
+  PURCHASE
+  SALE
+  ADJUSTMENT
+}
+
+model InventoryMovement {
+  id           String       @id @default(uuid())
+  productId    String
+  movementType MovementType
+  quantity     Int
+  previousStock Int
+  newStock     Int
+  notes        String?
+  createdAt    DateTime     @default(now())
+
+  product Product @relation(fields: [productId], references: [id])
+}
