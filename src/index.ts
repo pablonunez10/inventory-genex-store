@@ -11,15 +11,31 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middlewares
-app.use(cors({
-  origin: [
-    'http://localhost:8080',
-    'http://localhost:5173',
-    'http://localhost:3000',
-    // Agregar aquí la URL de producción cuando se despliegue
-  ],
+const allowedOrigins = [
+  'http://localhost:8080',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://inventario-genex-store.netlify.app',
+  // Agregar aquí la URL de producción cuando se despliegue
+];
+
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Si no hay origin (herramientas como Postman o llamadas server->server), permitir
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('CORS policy: Origin not allowed'));
+  },
   credentials: true,
-}));
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-Requested-With'],
+  optionsSuccessStatus: 200,
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 
 // Routes
@@ -42,6 +58,10 @@ app.use((req, res) => {
 // Error handler
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('Error:', err);
+  // Si es error de CORS, devolver 403 para facilitar debugging
+  if ((err as any).message && (err as any).message.includes('CORS')) {
+    return res.status(403).json({ error: 'Origin no permitido por CORS' });
+  }
   res.status(500).json({ error: 'Error interno del servidor' });
 });
 
